@@ -105,9 +105,9 @@ async def delete(interaction: discord.Interaction, message: discord.Message):
 							fi = await url_to_discord_file(f)
 							fileList.append(fi)
 
+		if interaction.user.dm_channel == None:
+			await interaction.user.create_dm()
 		if matched:
-			if interaction.user.dm_channel == None:
-				await interaction.user.create_dm()
 			await interaction.user.dm_channel.send(f"元メッセージ: {message.jump_url}",files=fileList)
 		else:
 			await interaction.user.dm_channel.send("SNSのリンクまたは画像が見つかりませんでした。")
