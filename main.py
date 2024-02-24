@@ -7,7 +7,6 @@ from discord.ext import tasks
 import re
 import asyncio
 import io
-from PIL import Image, ImageDraw, ImageFont
 import mimetypes
 import traceback
 
@@ -109,7 +108,7 @@ async def delete(interaction: discord.Interaction, message: discord.Message):
 		if matched:
 			if interaction.user.dm_channel == None:
 				await interaction.user.create_dm()
-			await interaction.user.dm_channel.send(f"元メッセージ: {message.mention}",files=fileList)
+			await interaction.user.dm_channel.send(f"元メッセージ: {message.jump_url}",files=fileList)
 		else:
 			await interaction.user.dm_channel.send("SNSのリンクまたは画像が見つかりませんでした。")
 	except:
@@ -120,7 +119,7 @@ async def delete(interaction: discord.Interaction, message: discord.Message):
 
 @tasks.loop(seconds=20)
 async def change_presence():
-	game = discord.CustomActivity(f"{len(client.guilds)} サーバーで導入されています！いつもありがとうございます！")
+	game = discord.Game(f"{len(client.guilds)} SERVERS")
 	await client.change_presence(status=discord.Status.idle, activity=game)
 
 keep_alive()
