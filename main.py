@@ -143,9 +143,7 @@ async def on_dropdown(interaction: discord.Interaction):
 				await interaction.followup.send("SNSのリンクまたは画像が見つかりませんでした。", ephemeral=True)
 		except:
 			traceback_info = traceback.format_exc()
-			if interaction.user.dm_channel == None:
-				await interaction.user.create_dm()
-			await interaction.user.dm_channel.send(f"処理を実行中にエラーが発生しました。\nhttps://github.com/nennneko5787/SNS-Attachment-Unpacker/issues/new にて以下のエラーログを添えて報告をお願いします。\n```\n{traceback_info}\n```")
+			await interaction.followup.send(f"処理を実行中にエラーが発生しました。\nhttps://github.com/nennneko5787/SNS-Attachment-Unpacker/issues/new にて以下のエラーログを添えて報告をお願いします。\n```\n{traceback_info}\n```", ephemeral=True)
 
 @tasks.loop(seconds=20)
 async def change_presence():
