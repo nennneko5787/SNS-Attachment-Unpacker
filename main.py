@@ -56,66 +56,96 @@ async def url_to_discord_file(url):
 
 @tree.context_menu(name="画像を展開")
 async def delete(interaction: discord.Interaction, message: discord.Message):
-	await interaction.response.send_message("しばらくお待ち下さい。処理が完了次第、DMにて画像を送信します。", ephemeral=True)
+	select = []
+	# 正規表現パターン
+	pattern = r"https://www.deviantart.com/(.*)/art/(.*)"
+	# マッチング
+	matches = re.findall(pattern, message.content)
+	for match in matches:
+		select.append(discord.SelectOption(label=f"https://www.deviantart.com/{match[0]}/art/{match[1]}",value=f"https://www.deviantart.com/{match[0]}/art/{match[1]}",description="DeviantArtの画像を表示"))
+
+	# 正規表現パターン
+	pattern = r"https://(?:x\.com|twitter\.com)/(.*)/status/(.*)"
+	# マッチング
+	matches = re.findall(pattern, message.content)
+	for match in matches:
+		select.append(discord.SelectOption(label=f"https://x.com/{match[0]}/art/{match[1]}",value=f"https://x.com/{match[0]}/art/{match[1]}",description="Xの画像を表示"))
+	view = discord.ui.View()
+	view.add_item(discord.ui.Select(custom_id="linksel",options=select, min_values=1))
+	await interaction.response.send_message("表示したい画像のリンクを選択してください。", view=view, ephemeral=True)
+
+@client.event
+async def on_interaction(interaction:discord.Interaction):
 	try:
-		fileList = []
+		# 2はボタン
+		if interaction.data['component_type'] == 3:
+			await on_dropdown(interaction)
+	except KeyError:
+		pass
 
-		# 正規表現パターン
-		pattern = r"https://www.deviantart.com/(.*)/art/(.*)"
-		# マッチング
-		matches = re.findall(pattern, message.content)
+async def on_dropdown(interaction: discord.Interaction):
+	custom_id = interaction.data["custom_id"]
+	if custom_id == "linksel":
+		await interaction.response.defer()
+		select_values = interaction.data["values"]
+		url = select_values[0]
+		try:
+			fileList = []
 
-		matched = False
+			# 正規表現パターン
+			pattern = r"https://www.deviantart.com/(.*)/art/(.*)"
+			# マッチング
+			matches = re.findall(pattern, url)
 
-		if matches:
-			matched = True
-			for match in matches:
-				# ユーザー名の取得
-				username = match[0]
-				
-				# 作品タイトルの取得
-				artwork_title = match[1]
-				
-				async with aiohttp.ClientSession() as session:
-					async with session.get(f"https://backend.deviantart.com/oembed?url=https://www.deviantart.com/{username}/art/{artwork_title}") as response:
-						json = await response.json()
-						file = await url_to_discord_file(json["url"])
-						fileList.append(file)
+			matched = False
 
-		# 正規表現パターン
-		pattern = r"https://(?:x\.com|twitter\.com)/(.*)/status/(.*)"
-		# マッチング
-		matches = re.findall(pattern, message.content)
+			if matches:
+				matched = True
+				for match in matches:
+					# ユーザー名の取得
+					username = match[0]
+					
+					# 作品タイトルの取得
+					artwork_title = match[1]
+					
+					async with aiohttp.ClientSession() as session:
+						async with session.get(f"https://backend.deviantart.com/oembed?url=https://www.deviantart.com/{username}/art/{artwork_title}") as response:
+							json = await response.json()
+							file = await url_to_discord_file(json["url"])
+							fileList.append(file)
 
-		if matches:
-			matched = True
-			for match in matches:
-				print(match)
+			# 正規表現パターン
+			pattern = r"https://(?:x\.com|twitter\.com)/(.*)/status/(.*)"
+			# マッチング
+			matches = re.findall(pattern, url)
 
-				# ユーザー名の取得
-				username = match[0]
-				
-				# 投稿IDの取得
-				post_id = match[1]
-				
-				async with aiohttp.ClientSession() as session:
-					async with session.get(f"https://api.vxtwitter.com/{username}/status/{post_id}") as response:
-						json = await response.json()
-						for f in json["mediaURLs"]:
-							fi = await url_to_discord_file(f)
-							fileList.append(fi)
+			if matches:
+				matched = True
+				for match in matches:
+					print(match)
 
-		if matched:
+					# ユーザー名の取得
+					username = match[0]
+					
+					# 投稿IDの取得
+					post_id = match[1]
+					
+					async with aiohttp.ClientSession() as session:
+						async with session.get(f"https://api.vxtwitter.com/{username}/status/{post_id}") as response:
+							json = await response.json()
+							for f in json["mediaURLs"]:
+								fi = await url_to_discord_file(f)
+								fileList.append(fi)
+
+			if matched:
+				await interaction.followup.send(files=fileList)
+			else:
+				await interaction.followup.send("SNSのリンクまたは画像が見つかりませんでした。", ephemeral=True)
+		except:
+			traceback_info = traceback.format_exc()
 			if interaction.user.dm_channel == None:
 				await interaction.user.create_dm()
-			await interaction.user.dm_channel.send(f"元メッセージ: {message.jump_url}",files=fileList)
-		else:
-			await interaction.user.dm_channel.send("SNSのリンクまたは画像が見つかりませんでした。")
-	except:
-		traceback_info = traceback.format_exc()
-		if interaction.user.dm_channel == None:
-			await interaction.user.create_dm()
-		await interaction.user.dm_channel.send(f"処理を実行中にエラーが発生しました。\nhttps://github.com/nennneko5787/SNS-Attachment-Unpacker/issues/new にて以下のエラーログを添えて報告をお願いします。\n```\n{traceback_info}\n```")
+			await interaction.user.dm_channel.send(f"処理を実行中にエラーが発生しました。\nhttps://github.com/nennneko5787/SNS-Attachment-Unpacker/issues/new にて以下のエラーログを添えて報告をお願いします。\n```\n{traceback_info}\n```")
 
 @tasks.loop(seconds=20)
 async def change_presence():
