@@ -75,16 +75,19 @@ async def unpack(interaction: discord.Interaction, message: discord.Message):
 		select.append(discord.SelectOption(label=f"https://x.com/{match[0]}/art/{match[1]}",value=f"https://x.com/{match[0]}/art/{match[1]}",description="Xの画像を表示"))
 
 	# 正規表現パターン
-	pattern = r"^(https?:\/\/[^\s\/$.?#].[^\s]*)$"
+	pattern = r"^(https?:\/\/[^\s\/$.?#]+\b)"
 	# マッチング
 	matches = re.findall(pattern, message.content)
 	for match in matches:
 		if await is_supported_by_yt_dlp(match[0]) != None:
 			select.append(discord.SelectOption(label=match[0],value=match[0],description="Xの画像を表示"))
 			
-	view = discord.ui.View()
-	view.add_item(discord.ui.Select(custom_id="linksel",options=select, min_values=1))
-	await interaction.followup.send("表示したい画像のリンクを選択してください。", view=view, ephemeral=True)
+	if len(select) != 0:
+		view = discord.ui.View()
+		view.add_item(discord.ui.Select(custom_id="linksel",options=select, min_values=1))
+		await interaction.followup.send("表示したい画像のリンクを選択してください。", view=view, ephemeral=True)
+	else:
+		await interaction.followup.send("このメッセージには添付ファイルを含んでいるURLがありません。")
 
 @client.event
 async def on_interaction(interaction:discord.Interaction):
