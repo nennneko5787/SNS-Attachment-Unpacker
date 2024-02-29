@@ -9,6 +9,7 @@ import asyncio
 import io
 import mimetypes
 import traceback
+from yt_dlp import YoutubeDL
 
 if os.path.isfile(".env") == True:
 	from dotenv import load_dotenv
@@ -83,6 +84,59 @@ async def on_interaction(interaction:discord.Interaction):
 	except KeyError:
 		pass
 
+async def is_supported_by_yt_dlp(url):
+	try:
+		ydl_opts = {}
+		loop = asyncio.get_event_loop()
+		ydl = YoutubeDL(ydl_opts)
+		dic = await loop.run_in_executor(None, lambda: ydl.extract_info(url, download=False))
+		# エラーが発生しない場合はURLを返す
+		return dic.get("url",None)
+	except YoutubeDL.utils.DownloadError:
+		# エラーが発生した場合はNoneを返す
+		return None
+
+async def process_deviantart_url(url):
+	fileList = []
+
+	pattern = r"https://www.deviantart.com/(.*)/art/(.*)"
+	matches = re.findall(pattern, url)
+
+	if matches:
+		for match in matches:
+			username = match[0]
+			artwork_title = match[1]
+			async with aiohttp.ClientSession() as session:
+				async with session.get(f"https://backend.deviantart.com/oembed?url=https://www.deviantart.com/{username}/art/{artwork_title}") as response:
+					json_data = await response.json()
+					file = await url_to_discord_file(json_data["url"])
+					fileList.append(file)
+	return fileList
+
+async def process_twitter_url(url):
+	fileList = []
+
+	pattern = r"https://(?:x\.com|twitter\.com)/(.*)/status/(.*)"
+	matches = re.findall(pattern, url)
+
+	if matches:
+		for match in matches:
+			username = match[0]
+			post_id = match[1]
+			async with aiohttp.ClientSession() as session:
+				async with session.get(f"https://api.vxtwitter.com/{username}/status/{post_id}") as response:
+					json_data = await response.json()
+					for f in json_data["mediaURLs"]:
+						file = await url_to_discord_file(f)
+						fileList.append(file)
+	return fileList
+
+async def process_yt_dlp(url):
+	fileList = []
+	file = await url_to_discord_file(url)
+	fileList.append(file)
+	return fileList
+
 async def on_dropdown(interaction: discord.Interaction):
 	custom_id = interaction.data["custom_id"]
 	if custom_id == "linksel":
@@ -92,56 +146,20 @@ async def on_dropdown(interaction: discord.Interaction):
 		try:
 			fileList = []
 
-			# 正規表現パターン
-			pattern = r"https://www.deviantart.com/(.*)/art/(.*)"
-			# マッチング
-			matches = re.findall(pattern, url)
+			if url.startswith("https://deviantart.com"):
+				fileList = await process_deviantart_url(url)
+			elif url.startswith("https://twitter.com") or url.startswith("https://x.com"):
+				fileList = await process_twitter_url(url)
+			else:
+				yt = await is_supported_by_yt_dlp(url)
+				if yt != None:
+					fileList = await process_yt_dlp(yt)
 
-			matched = False
-
-			if matches:
-				matched = True
-				for match in matches:
-					# ユーザー名の取得
-					username = match[0]
-					
-					# 作品タイトルの取得
-					artwork_title = match[1]
-					
-					async with aiohttp.ClientSession() as session:
-						async with session.get(f"https://backend.deviantart.com/oembed?url=https://www.deviantart.com/{username}/art/{artwork_title}") as response:
-							json = await response.json()
-							file = await url_to_discord_file(json["url"])
-							fileList.append(file)
-
-			# 正規表現パターン
-			pattern = r"https://(?:x\.com|twitter\.com)/(.*)/status/(.*)"
-			# マッチング
-			matches = re.findall(pattern, url)
-
-			if matches:
-				matched = True
-				for match in matches:
-					print(match)
-
-					# ユーザー名の取得
-					username = match[0]
-					
-					# 投稿IDの取得
-					post_id = match[1]
-					
-					async with aiohttp.ClientSession() as session:
-						async with session.get(f"https://api.vxtwitter.com/{username}/status/{post_id}") as response:
-							json = await response.json()
-							for f in json["mediaURLs"]:
-								fi = await url_to_discord_file(f)
-								fileList.append(fi)
-
-			if matched:
+			if fileList:
 				await interaction.followup.send(files=fileList, ephemeral=True)
 			else:
 				await interaction.followup.send("SNSのリンクまたは画像が見つかりませんでした。", ephemeral=True)
-		except:
+		except Exception as e:
 			traceback_info = traceback.format_exc()
 			await interaction.followup.send(f"処理を実行中にエラーが発生しました。\nhttps://github.com/nennneko5787/SNS-Attachment-Unpacker/issues/new にて以下のエラーログを添えて報告をお願いします。\n```\n{traceback_info}\n```", ephemeral=True)
 
