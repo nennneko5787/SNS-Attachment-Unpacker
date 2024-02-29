@@ -101,7 +101,7 @@ async def is_supported_by_yt_dlp(url):
 		dic = await loop.run_in_executor(None, lambda: ydl.extract_info(url, download=False))
 		# エラーが発生しない場合はURLを返す
 		return dic.get("url",None)
-	except YoutubeDL.utils.DownloadError:
+	except:
 		# エラーが発生した場合はNoneを返す
 		return None
 
@@ -175,7 +175,7 @@ async def on_dropdown(interaction: discord.Interaction):
 @tasks.loop(seconds=20)
 async def change_presence():
 	game = discord.Game(f"{len(client.guilds)} SERVERS")
-	await client.change_presence(status=discord.Status.idle, activity=game)
+	await client.change_presence(status=discord.Status.online, activity=game)
 
 keep_alive()
 client.run(token)
