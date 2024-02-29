@@ -67,12 +67,15 @@ async def unpack(interaction: discord.Interaction, message: discord.Message):
 	for match in matches:
 		select.append(discord.SelectOption(label=f"https://www.deviantart.com/{match[0]}/art/{match[1]}",value=f"https://www.deviantart.com/{match[0]}/art/{match[1]}",description="DeviantArtの画像を表示"))
 
+	re.sub(pattern, "", message.content)
+
 	# 正規表現パターン
 	pattern = r"https://(?:x\.com|twitter\.com)/(.*)/status/(.*)"
 	# マッチング
 	matches = re.findall(pattern, message.content)
 	for match in matches:
 		select.append(discord.SelectOption(label=f"https://x.com/{match[0]}/art/{match[1]}",value=f"https://x.com/{match[0]}/art/{match[1]}",description="Xの画像を表示"))
+	re.sub(pattern, "", message.content)
 
 	# 正規表現パターン
 	pattern = r"^(https?:\/\/[^\s\/$.?#].[^\s]*+\b)"
@@ -81,7 +84,8 @@ async def unpack(interaction: discord.Interaction, message: discord.Message):
 	for match in matches:
 		if await is_supported_by_yt_dlp(match) != None:
 			select.append(discord.SelectOption(label=match,value=match,description="その他の対応しているSNSの添付ファイルを表示"))
-			
+	re.sub(pattern, "", message.content)
+
 	if len(select) != 0:
 		view = discord.ui.View()
 		view.add_item(discord.ui.Select(custom_id="linksel",options=select, min_values=1))
@@ -160,9 +164,11 @@ async def on_dropdown(interaction: discord.Interaction):
 		try:
 			fileList = []
 
-			if url.startswith("https://deviantart.com"):
+			if "deviantart.com" in url:
 				fileList = await process_deviantart_url(url)
-			elif url.startswith("https://twitter.com") or url.startswith("https://x.com"):
+			elif "twitter.com" in url:
+				fileList = await process_twitter_url(url)
+			elif "x.com" in url:
 				fileList = await process_twitter_url(url)
 			else:
 				yt = await is_supported_by_yt_dlp(url)
