@@ -56,7 +56,9 @@ async def url_to_discord_file(url):
 				return None
 
 @tree.context_menu(name="画像を展開")
-async def delete(interaction: discord.Interaction, message: discord.Message):
+async def unpack(interaction: discord.Interaction, message: discord.Message):
+	await interaction.response.defer(ephemeral=True)
+
 	select = []
 	# 正規表現パターン
 	pattern = r"https://www.deviantart.com/(.*)/art/(.*)"
@@ -82,7 +84,7 @@ async def delete(interaction: discord.Interaction, message: discord.Message):
 			
 	view = discord.ui.View()
 	view.add_item(discord.ui.Select(custom_id="linksel",options=select, min_values=1))
-	await interaction.response.send_message("表示したい画像のリンクを選択してください。", view=view, ephemeral=True)
+	await interaction.followup.send("表示したい画像のリンクを選択してください。", view=view, ephemeral=True)
 
 @client.event
 async def on_interaction(interaction:discord.Interaction):
