@@ -75,7 +75,7 @@ async def unpack(interaction: discord.Interaction, message: discord.Message):
 		select.append(discord.SelectOption(label=f"https://x.com/{match[0]}/art/{match[1]}",value=f"https://x.com/{match[0]}/art/{match[1]}",description="Xの画像を表示"))
 
 	# 正規表現パターン
-	pattern = r"^(https?:\/\/[^\s\/$.?#]+\b)"
+	pattern = r"^(https?:\/\/[^\s\/$.?#].[^\s]*+\b)"
 	# マッチング
 	matches = re.findall(pattern, message.content)
 	for match in matches:
