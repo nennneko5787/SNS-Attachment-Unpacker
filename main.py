@@ -116,47 +116,6 @@ async def is_supported_by_yt_dlp(url):
 		# エラーが発生した場合はNoneを返す
 		return None
 
-async def process_deviantart_url(url):
-	fileList = []
-
-	pattern = r"https://www.deviantart.com/(.*)/art/(.*)"
-	matches = re.findall(pattern, url)
-
-	if matches:
-		for match in matches:
-			username = match[0]
-			artwork_title = match[1]
-			async with aiohttp.ClientSession() as session:
-				async with session.get(f"https://backend.deviantart.com/oembed?url=https://www.deviantart.com/{username}/art/{artwork_title}") as response:
-					json_data = await response.json()
-					file = await url_to_discord_file(json_data["url"])
-					fileList.append(file)
-	return fileList
-
-async def process_twitter_url(url):
-	fileList = []
-
-	pattern = r"https://(?:x\.com|twitter\.com)/(.*)/status/(.*)"
-	matches = re.findall(pattern, url)
-
-	if matches:
-		for match in matches:
-			username = match[0]
-			post_id = match[1]
-			async with aiohttp.ClientSession() as session:
-				async with session.get(f"https://api.vxtwitter.com/{username}/status/{post_id}") as response:
-					json_data = await response.json()
-					for f in json_data["mediaURLs"]:
-						file = await url_to_discord_file(f)
-						fileList.append(file)
-	return fileList
-
-async def process_yt_dlp(url):
-	fileList = []
-	file = await url_to_discord_file(url)
-	fileList.append(file)
-	return fileList
-
 async def on_dropdown(interaction: discord.Interaction):
 	custom_id = interaction.data["custom_id"]
 	if custom_id == "linksel":
@@ -167,16 +126,50 @@ async def on_dropdown(interaction: discord.Interaction):
 			fileList = []
 
 			if "deviantart.com" in url:
-				fileList = await process_deviantart_url(url)
-			elif "twitter.com" in url:
-				fileList = await process_twitter_url(url)
-			elif "x.com" in url:
-				fileList = await process_twitter_url(url)
-			else:
-				yt = await is_supported_by_yt_dlp(url)
-				if yt != None:
-					fileList = await process_yt_dlp(yt)
+				pattern = r"https://www.deviantart.com/(.*)/art/(.*)"
+				matches = re.findall(pattern, url)
 
+				if matches:
+					for match in matches:
+						username = match[0]
+						artwork_title = match[1]
+						async with aiohttp.ClientSession() as session:
+							async with session.get(f"https://backend.deviantart.com/oembed?url=https://www.deviantart.com/{username}/art/{artwork_title}") as response:
+								json_data = await response.json()
+								file = await url_to_discord_file(json_data["url"])
+								fileList.append(file)
+			elif "twitter.com" in url:
+				pattern = r"https://(?:x\.com|twitter\.com)/(.*)/status/(.*)"
+				matches = re.findall(pattern, url)
+
+				if matches:
+					for match in matches:
+						username = match[0]
+						post_id = match[1]
+						async with aiohttp.ClientSession() as session:
+							async with session.get(f"https://api.vxtwitter.com/{username}/status/{post_id}") as response:
+								json_data = await response.json()
+								for f in json_data["mediaURLs"]:
+									file = await url_to_discord_file(f)
+									fileList.append(file)
+			elif "x.com" in url:
+				pattern = r"https://(?:x\.com|twitter\.com)/(.*)/status/(.*)"
+				matches = re.findall(pattern, url)
+
+				if matches:
+					for match in matches:
+						username = match[0]
+						post_id = match[1]
+						async with aiohttp.ClientSession() as session:
+							async with session.get(f"https://api.vxtwitter.com/{username}/status/{post_id}") as response:
+								json_data = await response.json()
+								for f in json_data["mediaURLs"]:
+									file = await url_to_discord_file(f)
+									fileList.append(file)
+			else:
+				fileList = []
+				file = await url_to_discord_file(url)
+				fileList.append(file)
 			if len(fileList) > 0:
 				await interaction.followup.send(files=fileList, ephemeral=True)
 			else:
