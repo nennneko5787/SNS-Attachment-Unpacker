@@ -79,9 +79,8 @@ async def unpack(interaction: discord.Interaction, message: discord.Message):
 	# マッチング
 	matches = re.findall(pattern, message.content)
 	for match in matches:
-		await interaction.channel.send(match)
-		if await is_supported_by_yt_dlp(match[0]) != None:
-			select.append(discord.SelectOption(label=match[0],value=match[0],description="その他の対応しているSNSの添付ファイルを表示"))
+		if await is_supported_by_yt_dlp(match) != None:
+			select.append(discord.SelectOption(label=match,value=match,description="その他の対応しているSNSの添付ファイルを表示"))
 			
 	if len(select) != 0:
 		view = discord.ui.View()
