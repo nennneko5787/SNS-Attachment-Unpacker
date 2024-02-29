@@ -69,7 +69,7 @@ async def unpack(interaction: discord.Interaction, message: discord.Message):
 	for match in matches:
 		select.append(discord.SelectOption(label=f"https://www.deviantart.com/{match[0]}/art/{match[1]}",value=f"https://www.deviantart.com/{match[0]}/art/{match[1]}",description="DeviantArtの画像を表示"))
 
-	re.sub(pattern, "", content)
+	content = re.sub(pattern, "", content)
 
 	# 正規表現パターン
 	pattern = r"https://(?:x\.com|twitter\.com)/(.*)/status/(.*)"
@@ -77,7 +77,7 @@ async def unpack(interaction: discord.Interaction, message: discord.Message):
 	matches = re.findall(pattern, content)
 	for match in matches:
 		select.append(discord.SelectOption(label=f"https://x.com/{match[0]}/art/{match[1]}",value=f"https://x.com/{match[0]}/art/{match[1]}",description="Xの画像を表示"))
-	re.sub(pattern, "", content)
+	content = re.sub(pattern, "", content)
 
 	# 正規表現パターン
 	pattern = r"^(https?:\/\/[^\s\/$.?#].[^\s]*+\b)"
@@ -86,7 +86,7 @@ async def unpack(interaction: discord.Interaction, message: discord.Message):
 	for match in matches:
 		if await is_supported_by_yt_dlp(match) != None:
 			select.append(discord.SelectOption(label=match,value=match,description="その他の対応しているSNSの添付ファイルを表示"))
-	re.sub(pattern, "", content)
+	content = re.sub(pattern, "", content)
 
 	if len(select) != 0:
 		view = discord.ui.View()
