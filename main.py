@@ -138,7 +138,7 @@ async def on_dropdown(interaction: discord.Interaction):
 								fileList.append(fi)
 
 			if matched:
-				await interaction.followup.send(files=fileList)
+				await interaction.followup.send(files=fileList, ephemeral=True)
 			else:
 				await interaction.followup.send("SNSのリンクまたは画像が見つかりませんでした。", ephemeral=True)
 		except:
