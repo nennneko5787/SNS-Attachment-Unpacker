@@ -63,7 +63,7 @@ async def unpack(interaction: discord.Interaction, message: discord.Message):
 
 	select = []
 	# 正規表現パターン
-	pattern = r"https://www.deviantart.com/(.*)/art/(.*)"
+	pattern = r"https://www.deviantart.com/(.*?)/art/(.*?)"
 	# マッチング
 	matches = re.findall(pattern, content)
 	for match in matches:
@@ -72,7 +72,7 @@ async def unpack(interaction: discord.Interaction, message: discord.Message):
 	content = re.sub(pattern, "", content)
 
 	# 正規表現パターン
-	pattern = r"https://(?:x\.com|twitter\.com)/(.*)/status/(.*)"
+	pattern = r"https://(?:x.com|twitter.com)/(.*?)/status/(.*?)"
 	# マッチング
 	matches = re.findall(pattern, content)
 	for match in matches:
