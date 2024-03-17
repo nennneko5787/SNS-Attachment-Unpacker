@@ -63,7 +63,7 @@ async def unpack(interaction: discord.Interaction, message: discord.Message):
 
 	select = []
 	# 正規表現パターン
-	pattern = r"https://www.deviantart.com/(.*?)/art/(.*?)"
+	pattern = r"https://www.deviantart.com/(.*)/art/(.*)"
 	# マッチング
 	matches = re.findall(pattern, content)
 	for match in matches:
@@ -72,11 +72,11 @@ async def unpack(interaction: discord.Interaction, message: discord.Message):
 	content = re.sub(pattern, "", content)
 
 	# 正規表現パターン
-	pattern = r"https://(?:x.com|twitter.com)/(.*?)/status/(.*?)"
+	pattern = r"https://(?:x.com|twitter.com)/(.*)/status/(.*)"
 	# マッチング
 	matches = re.findall(pattern, content)
 	for match in matches:
-		select.append(discord.SelectOption(label=f"https://x.com/{match[0]}/art/{match[1]}",value=f"https://x.com/{match[0]}/art/{match[1]}",description="Xの画像を表示"))
+		select.append(discord.SelectOption(label=f"https://x.com/{match[0]}/status/{match[1]}",value=f"https://x.com/{match[0]}/statua/{match[1]}",description="Xの画像を表示"))
 	content = re.sub(pattern, "", content)
 
 	# 正規表現パターン
@@ -138,7 +138,7 @@ async def on_dropdown(interaction: discord.Interaction):
 							file = await url_to_discord_file(json_data["url"])
 							fileList.append(file)
 			if "twitter.com" in url or "x.com" in url:
-				pattern = r"https://(?:x\.com|twitter\.com)/(.*)/status/(.*)"
+				pattern = r"https://(?:x.com|twitter.com)/(.*)/status/(.*)"
 				match = re.match(pattern, url)
 
 				if match:
