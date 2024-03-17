@@ -138,12 +138,12 @@ async def on_dropdown(interaction: discord.Interaction):
 							file = await url_to_discord_file(json_data["url"])
 							fileList.append(file)
 			if "twitter.com" in url or "x.com" in url:
-				pattern = r"https://(?:x.com|twitter.com)/(.*)/status/(.*)"
+				pattern = r"https://(x.com|twitter.com)/(.*)/status/(.*)"
 				match = re.match(pattern, url)
 
 				if match:
-					username = match[0]
-					post_id = match[1]
+					username = match[1]
+					post_id = match[2]
 					async with aiohttp.ClientSession() as session:
 						async with session.get(f"https://api.vxtwitter.com/{username}/status/{post_id}") as response:
 							json_data = await response.json()
