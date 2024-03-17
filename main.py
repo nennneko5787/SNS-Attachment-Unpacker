@@ -137,7 +137,7 @@ async def on_dropdown(interaction: discord.Interaction):
 							json_data = await response.json()
 							file = await url_to_discord_file(json_data["url"])
 							fileList.append(file)
-			elif "twitter.com" in url or "x.com" in url:
+			if "twitter.com" in url or "x.com" in url:
 				pattern = r"https://(?:x\.com|twitter\.com)/(.*)/status/(.*)"
 				match = re.match(pattern, url)
 
@@ -159,7 +159,7 @@ async def on_dropdown(interaction: discord.Interaction):
 			if len(fileList) > 0:
 				await interaction.followup.send(files=fileList, ephemeral=True)
 			else:
-				await interaction.followup.send(f"SNSのリンクまたは画像が見つかりませんでした。{fileList}|{url}", ephemeral=True)
+				await interaction.followup.send(f"SNSのリンクまたは画像が見つかりませんでした。{match}|{fileList}|{url}", ephemeral=True)
 		except Exception as e:
 			traceback_info = traceback.format_exc()
 			await interaction.followup.send(f"処理を実行中にエラーが発生しました。\nhttps://github.com/nennneko5787/SNS-Attachment-Unpacker/issues/new にて以下のエラーログを添えて報告をお願いします。\n```\n{traceback_info}\n```", ephemeral=True)
