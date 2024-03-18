@@ -137,7 +137,7 @@ async def on_dropdown(interaction: discord.Interaction):
 							json_data = await response.json()
 							file = await url_to_discord_file(json_data["url"])
 							fileList.append(file)
-			if "twitter.com" in url or "x.com" in url:
+			elif "twitter.com" in url or "x.com" in url:
 				pattern = r"https://(x.com|twitter.com)/(.*)/status/(.*)"
 				match = re.match(pattern, url)
 
@@ -151,6 +151,8 @@ async def on_dropdown(interaction: discord.Interaction):
 							for f in json_data["mediaURLs"]:
 								file = await url_to_discord_file(f)
 								fileList.append(file)
+				else:
+					await interaction.channel.send(f"のーまっち")
 			else:
 				fileList = []
 				a = await is_supported_by_yt_dlp(url)
