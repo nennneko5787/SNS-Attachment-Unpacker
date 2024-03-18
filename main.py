@@ -147,7 +147,6 @@ async def on_dropdown(interaction: discord.Interaction):
 					async with aiohttp.ClientSession() as session:
 						async with session.get(f"https://api.vxtwitter.com/{username}/status/{post_id}") as response:
 							json_data = await response.json()
-							await interaction.channel.send(f"{json_data}")
 							for f in json_data["mediaURLs"]:
 								file = await url_to_discord_file(f)
 								fileList.append(file)
