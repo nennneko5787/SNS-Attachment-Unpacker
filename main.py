@@ -111,7 +111,13 @@ async def is_supported_by_yt_dlp(url):
 		ydl = YoutubeDL(ydl_opts)
 		dic = await loop.run_in_executor(None, lambda: ydl.extract_info(url, download=False))
 		# エラーが発生しない場合はURLを返す
-		return dic.get("url",None)
+		if dic.get("url",None) is not None:
+			return {
+				"url": dic.get("url",""),
+				"content": dic.get("title","")
+			}
+		else:
+			return None
 	except:
 		# エラーが発生した場合はNoneを返す
 		return None
@@ -122,6 +128,7 @@ async def on_dropdown(interaction: discord.Interaction):
 		await interaction.response.defer()
 		select_values = interaction.data["values"]
 		url = select_values[0]
+		content = ""
 		try:
 			fileList = []
 
@@ -135,6 +142,7 @@ async def on_dropdown(interaction: discord.Interaction):
 					async with aiohttp.ClientSession() as session:
 						async with session.get(f"https://backend.deviantart.com/oembed?url=https://www.deviantart.com/{username}/art/{artwork_title}") as response:
 							json_data = await response.json()
+							content = json_data.get("title","")
 							file = await url_to_discord_file(json_data["url"])
 							fileList.append(file)
 			elif "twitter.com" in url or "x.com" in url:
@@ -147,17 +155,19 @@ async def on_dropdown(interaction: discord.Interaction):
 					async with aiohttp.ClientSession() as session:
 						async with session.get(f"https://api.vxtwitter.com/{username}/status/{post_id}") as response:
 							json_data = await response.json()
-							for f in json_data["mediaURLs"]:
+							content = json_data.get("text","")
+							for f in json_data.get("mediaURLs",[]):
 								file = await url_to_discord_file(f)
 								fileList.append(file)
 			else:
 				fileList = []
 				a = await is_supported_by_yt_dlp(url)
 				if a != None:
-					file = await url_to_discord_file(a)
+					content = a.get("content")
+					file = await url_to_discord_file(a.get("url"))
 					fileList.append(file)
 			if len(fileList) > 0:
-				await interaction.followup.send(files=fileList, ephemeral=True)
+				await interaction.followup.send(content=content, files=fileList, ephemeral=True)
 			else:
 				await interaction.followup.send(f"SNSのリンクまたは画像が見つかりませんでした。", ephemeral=True)
 		except Exception as e:
