@@ -167,6 +167,7 @@ async def on_dropdown(interaction: discord.Interaction):
 					content = a.get("content")
 					file = await url_to_discord_file(a.get("url"))
 					fileList.append(file)
+			await interaction.channel.send(f"{message.components[0]}")
 			view = discord.ui.View()
 			view.add_item(message.components[0].children[0])
 			if len(fileList) > 0:
