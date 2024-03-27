@@ -169,7 +169,7 @@ async def on_dropdown(interaction: discord.Interaction):
 			await interaction.channel.send(f"{message.components[0]}")
 			view = discord.ui.View()
 			select = discord.ui.Select(custom_id="linksel", min_values=1)
-			for _ in message.components[0].children:
+			for _ in interaction.message.components[0].children:
 				select.append_option(_)
 			view.add_item(select)
 			if len(fileList) > 0:
