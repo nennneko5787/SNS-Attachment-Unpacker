@@ -173,10 +173,10 @@ async def on_dropdown(interaction: discord.Interaction):
 				select.append_option(_)
 			view.add_item(select)
 			if len(fileList) > 0:
-				await interaction.message.edit(content=content, attachments=fileList, view=view)
+				await interaction.edit_original_response(content=content, attachments=fileList, view=view)
 				# await interaction.followup.send(content=content, files=fileList, ephemeral=True)
 			else:
-				await interaction.message.edit(content=f"SNSのリンクまたは画像が見つかりませんでした。", attachments=[], view=view)
+				await interaction.edit_original_response(content=f"SNSのリンクまたは画像が見つかりませんでした。", attachments=[], view=view)
 				# await interaction.followup.send(f"SNSのリンクまたは画像が見つかりませんでした。", ephemeral=True)
 		except Exception as e:
 			traceback_info = traceback.format_exc()
