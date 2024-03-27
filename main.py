@@ -167,9 +167,7 @@ async def on_dropdown(interaction: discord.Interaction):
 					file = await url_to_discord_file(a.get("url"))
 					fileList.append(file)
 			view = discord.ui.View()
-			select = discord.ui.Select(custom_id="linksel", min_values=1)
-			for _ in interaction.message.components[0].children:
-				select.append_option(_)
+			select = interaction.message.components[1]
 			view.add_item(select)
 			if len(fileList) > 0:
 				await interaction.edit_original_response(content=content, attachments=fileList, view=view)
